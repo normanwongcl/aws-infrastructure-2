@@ -1,0 +1,51 @@
+Description: A cloudformation to create a basic kms key for any sort of data-at-rest encryption
+
+Resources:
+  # Data At-rest AWS-managed server-side encryption
+  # Warning: If you delete an encryption key used by your database, you can't unencrypt the data without the key
+  KmsKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub KMS Key for our ${AWS::StackName} Aurora, Elasticache and S3
+      KeyPolicy:
+        Id: !Ref AWS::StackName #You can also used the Environment name instead of the Stackname
+        Version: '2012-10-17'
+        Statement:
+          - Sid: 'Allow administration of the key'
+            Effect: 'Allow'
+            Action:
+              - kms:Create*
+              - kms:Describe*
+              - kms:Enable*
+              - kms:List*
+              - kms:Put*
+              - kms:Update*
+              - kms:Revoke*
+              - kms:Disable*
+              - kms:Get*
+              - kms:Delete*
+              - kms:ScheduleKeyDeletion
+              - kms:CancelKeyDeletion
+            Principal:
+              AWS: !Ref AWS::AccountId
+            Resource: '*'
+          - Sid: 'Allow use of the key'
+            Effect: 'Allow'
+            Principal:
+              AWS: !Ref AWS::AccountId
+            Action:
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey*'
+              - 'kms:DescribeKey'
+            Resource: '*'
+
+Outputs:
+  VPC:
+    Description: A reference to the KMS key
+    Value: !Ref KmsKey
+    Export:
+      Name: !Sub '${AWS::StackName}-KMS-ID'
