@@ -1,6 +1,8 @@
 # Deploying a 3-tier dockerised application with AWS Cloudformation
 This repository provides a set of YAML templates and linux shell scripts for deploying a 3-tier dockerised application to [Amazon EC2 instances](https://aws.amazon.com/ec2/) using ECS.
 
+This is a modified project of my aws-infrasture repository: https://github.com/Klezca/aws-infrastructure
+
 A simple AWS CodePipeline: https://aws.amazon.com/quickstart/architecture/cicd-taskcat/
 has been deployed in AWS and automatically perform **functional testing and linting checks** on the cloudformation templates using the **TaskCat** configuration described in the **.taskcat.yml** file.
 
