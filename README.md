@@ -1,19 +1,24 @@
 # Deploying a 3-tier web application with AWS Cloudformation
 
+TEST
+
 This repository provides a set of YAML templates and linux shell scripts for deploying a 3-tier web application to [Amazon EC2 instances](https://aws.amazon.com/ec2/) with [AWS CloudFormation](https://aws.amazon.com/cloudformation/)
 
 ## Overview
+
 ![infrastructure-overview](images/staging-architecture.png)
 
 ## Templates
 
 ### Categories
-* [Root](#root)
-* [VPC](#vpc)
-* [Storage](#storage)
-* [WebServer](#webserver)
+
+- [Root](#root)
+- [VPC](#vpc)
+- [Storage](#storage)
+- [WebServer](#webserver)
 
 ### Root
+
 [Back to Top](#overview)
 
 This is the master template that will call all the templates.
@@ -50,6 +55,7 @@ Coupled with a custom parameters JSON file can give you a one command solution t
 </table>
 
 ### VPC
+
 [Back to Top](#overview)
 
 <table width="100%">
@@ -86,6 +92,7 @@ Coupled with a custom parameters JSON file can give you a one command solution t
 </table>
 
 ### Storage
+
 [Back to Top](#overview)
 
 <table width="100%">
@@ -119,6 +126,7 @@ Coupled with a custom parameters JSON file can give you a one command solution t
 </table>
 
 ### WebServer
+
 [Back to Top](#overview)
 
 <table width="100%">
