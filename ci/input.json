@@ -1,6 +1,0 @@
-[
-  {
-    "ParameterKey": "LatestLinuxAmiId",
-    "ParameterValue": "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
-  }
-]
