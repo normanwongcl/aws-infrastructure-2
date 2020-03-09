@@ -11,7 +11,8 @@ Parameters:
     Default: Staging
     AllowedValues:
       - Staging
-      - Prod
+      - Prod-ap-southeast-2
+      - Prod-us-east-1
 
   VpcCIDR:
     Description: Please enter the IP range (CIDR notation) for this VPC
@@ -207,7 +208,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${EnvironmentName} Private Routes (AZ1)
+          Value: !Sub ${EnvironmentName} Private Routes
 
   DefaultPrivateRoute1:
     Type: AWS::EC2::Route
@@ -267,30 +268,9 @@ Resources:
           FromPort: 443
           ToPort: 443
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          SourceSecurityGroupId: !Ref BastionHostSecurityGroup
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Web-Servers
-
-  # Bastion host Security group
-  # This security group defines who/where is allowed to access the EC2 hosts directly.
-  BastionHostSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      VpcId: !Ref VPC
-      GroupDescription: Access to the EC2 instances
-      SecurityGroupIngress:
-        # Only allow inbound access to ECS from the ELB
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: !Sub ${EnvironmentName}-Bastion-host
 
   # Application Load Balancer Security group
   # This security group defines who/where is allowed to access the Application Load Balancer.
@@ -346,19 +326,20 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Redis-elasticache
+
 Outputs:
   VPC:
     Description: A reference to the created VPC
     Value: !Ref VPC
     Export:
-      Name: !Sub "${AWS::StackName}-VPC-ID"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::VPC-ID"]]
 
   PublicSubnets:
     Description: A list of the public subnets
     Value:
       !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3]]
     Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet-List"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PublicSubnet-List"]]
 
   PrivateSubnets:
     Description: A list of the private subnets
@@ -368,82 +349,82 @@ Outputs:
         [!Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3],
       ]
     Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet-List"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PrivateSubnet-List"]]
 
   PublicSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
     Value: !Ref PublicSubnet1
     Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet-1"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PublicSubnet-1"]]
 
   PublicSubnet2:
     Description: A reference to the public subnet in the 2nd Availability Zone
     Value: !Ref PublicSubnet2
     Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet-2"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PublicSubnet-2"]]
 
   PublicSubnet3:
     Description: A reference to the public subnet in the 3rd Availability Zone
     Value: !Ref PublicSubnet3
     Export:
-      Name: !Sub "${AWS::StackName}-PublicSubnet-3"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PublicSubnet-3"]]
 
   PrivateSubnet1:
     Description: A reference to the private subnet in the 1st Availability Zone
     Value: !Ref PrivateSubnet1
     Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet-1"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PrivateSubnet-1"]]
 
   PrivateSubnet2:
     Description: A reference to the private subnet in the 2nd Availability Zone
     Value: !Ref PrivateSubnet2
     Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet-2"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PrivateSubnet-2"]]
 
   PrivateSubnet3:
     Description: A reference to the private subnet in the 3rd Availability Zone
     Value: !Ref PrivateSubnet3
     Export:
-      Name: !Sub "${AWS::StackName}-PrivateSubnet-3"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PrivateSubnet-3"]]
 
   NatGateway1EIP:
     Description: NAT Gateway 1 IP address
     Value: !Ref NatGateway1EIP
     Export:
-      Name: !Sub "${AWS::StackName}-NATGateway-1"
-
-  #   NatGateway2EIP:
-  #     Description: NAT Gateway 1 IP address
-  #     Value: !Ref NatGateway2EIP
-  #     Export:
-  #        Name: !Sub '${AWS::StackName}-NATGateway-2'
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::NATGateway-1"]]
 
   EC2SecurityGroup:
     Description: A reference to the security group for EC2 hosts
     Value: !Ref EC2SecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-SecurityGroup-EC2"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-EC2"]]
 
   LoadBalancerSecurityGroup:
     Description: A reference to the security group for load balancers
     Value: !Ref LoadBalancerSecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-SecurityGroup-ALB"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-ALB"]]
 
   DBSecurityGroup:
     Description: A reference to the security group for the database
     Value: !Ref DBSecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-SecurityGroup-DB"
-
-  BastionHostSecurityGroup:
-    Description: A reference to the security group for the bastion host
-    Value: !Ref BastionHostSecurityGroup
-    Export:
-      Name: !Sub "${AWS::StackName}-SecurityGroup-BastionHost"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-DB"]]
 
   RedisSecurityGroup:
     Description: A reference to the security group for the redis cache
     Value: !Ref RedisSecurityGroup
     Export:
-      Name: !Sub "${AWS::StackName}-SecurityGroup-Redis"
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-Redis"]]
+
+  PublicRouteTable:
+    Description: A reference to the public route table ID
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PublicRouteTable"]]
+
+  PrivateRouteTable1:
+    Description: A reference to the private route-table ID
+    Value: !Ref PrivateRouteTable1
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::PrivateRouteTable"]]
