@@ -334,6 +334,12 @@ Outputs:
     Export:
       Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::VPC-ID"]]
 
+  VPCCidrBlock:
+    Description: VPC IPv4 Cidr Block
+    Value: !GetAtt VPC.CidrBlock
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::VPC-CidrBlock"]]
+
   PublicSubnets:
     Description: A list of the public subnets
     Value:
