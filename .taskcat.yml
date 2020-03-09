@@ -3,10 +3,8 @@ project:
   owner: nich19032@gmail.com
   name: aws-infrastructure-2
   regions:
-    - ap-northeast-1
-    - ap-southeast-1
-    - ap-southeast-2
-    - us-east-1
+    - ap-east-1
+
 tests:
   test-scenario-1:
     parameters:
@@ -14,8 +12,7 @@ tests:
     template: ./templates/web-service/gettingPublicParameter.yaml
     s3_bucket: norman-new-infra
     regions:
-      - ap-southeast-2
-      - us-east-1
+      - ap-east-1
 
   test-scenario-2:
     parameters:
@@ -30,5 +27,4 @@ tests:
     template: ./templates/vpc/vpc.yaml
     s3_bucket: norman-new-infra
     regions:
-      - ap-southeast-2
-      - us-east-1
+      - ap-east-1
