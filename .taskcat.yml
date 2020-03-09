@@ -11,7 +11,7 @@ tests:
   test-scenario-1:
     parameters:
       LatestLinuxAmiId: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
-    template: ./templates/gettingPublicParameter.yaml
+    template: ./templates/web-service/gettingPublicParameter.yaml
     s3_bucket: norman-new-infra
     regions:
       - ap-southeast-2
@@ -27,7 +27,7 @@ tests:
       PrivateSubnet1CIDR: 10.2.0.0/19
       PrivateSubnet2CIDR: 10.2.64.0/19
       PrivateSubnet3CIDR: 10.2.128.0/19
-    template: ./templates/vpc.yaml
+    template: ./templates/vpc/vpc.yaml
     s3_bucket: norman-new-infra
     regions:
       - ap-southeast-2
