@@ -44,6 +44,14 @@ Parameters:
     Description: Export Name of Route Table ID for the second VPC
     Type: String
 
+  RequesterCidrBlock:
+    Description: Export Name of the CidrBlock for the 1st VPC
+    Type: String
+
+  AccepterCidrBlock:
+    Description: Export Name of the CidrBlock for the 2nd VPC
+    Type: String
+
 Resources:
   myVPCPeeringConnection:
     Type: "AWS::EC2::VPCPeeringConnection"
@@ -52,3 +60,21 @@ Resources:
         Fn::ImportValue: !Ref AccepterVPCID
       PeerVpcId:
         Fn::ImportValue: !Ref RequesterVPCID
+
+  PeeringRoute1:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock:
+        Fn::ImportValue: !Ref AccepterCidrBlock
+      RouteTableId:
+        Fn::ImportValue: !Ref RequesterVPCRouteTable
+      VpcPeeringConnectionId: !Ref myVPCPeeringConnection
+
+  PeeringRoute2:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock:
+        Fn::ImportValue: !Ref RequesterCidrBlock
+      RouteTableId:
+        Fn::ImportValue: !Ref AccepterRouteTable
+      VpcPeeringConnectionId: !Ref myVPCPeeringConnection
