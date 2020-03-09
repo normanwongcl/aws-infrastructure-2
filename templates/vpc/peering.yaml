@@ -1,0 +1,80 @@
+Description: >
+  Creates two VPC peering connections between Staging and Prod.
+
+Metadata:
+  License: Apache 2.0
+  Author: Norman Wong Chiew Look
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: VPC ID Export Name
+        Parameters:
+          - RequesterVPCID
+          - AccepterVPCID
+      - Label:
+          default: Route Table Export Name
+        Parameters:
+          - RequesterVPCRouteTable
+          - AccepterRouteTable
+    ParameterLabels:
+      RequesterVPCID:
+        default: 1st VPC ID Export Name
+      AccepterVPCID:
+        default: 2nd VPC ID Export Name
+      RequesterVPCRouteTable:
+        default: 1st VPC Route Table Export Name
+      AccepterRouteTable:
+        default: 2nd VPC Route Table Export Name
+
+Parameters:
+  RequesterVPCID:
+    Description: Export name of the first VPC
+    Type: String
+
+  AccepterVPCID:
+    Description: Export name of the second VPC
+    Type: String
+
+  RequesterVPCRouteTable:
+    Description: Export Name of the Route Table ID for the first VPC
+    Type: String
+
+  AccepterRouteTable:
+    Description: Export Name of Route Table ID for the second VPC
+    Type: String
+
+  RequesterCidrBlock:
+    Description: Export Name of the CidrBlock for the 1st VPC
+    Type: String
+
+  AccepterCidrBlock:
+    Description: Export Name of the CidrBlock for the 2nd VPC
+    Type: String
+
+Resources:
+  myVPCPeeringConnection:
+    Type: "AWS::EC2::VPCPeeringConnection"
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Ref AccepterVPCID
+      PeerVpcId:
+        Fn::ImportValue: !Ref RequesterVPCID
+
+  PeeringRoute1:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock:
+        Fn::ImportValue: !Ref AccepterCidrBlock
+      RouteTableId:
+        Fn::ImportValue: !Ref RequesterVPCRouteTable
+      VpcPeeringConnectionId: !Ref myVPCPeeringConnection
+
+  PeeringRoute2:
+    Type: "AWS::EC2::Route"
+    Properties:
+      DestinationCidrBlock:
+        Fn::ImportValue: !Ref RequesterCidrBlock
+      RouteTableId:
+        Fn::ImportValue: !Ref AccepterRouteTable
+      VpcPeeringConnectionId: !Ref myVPCPeeringConnection
