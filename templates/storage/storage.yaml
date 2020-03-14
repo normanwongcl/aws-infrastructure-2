@@ -15,29 +15,29 @@ Parameters:
     Type: String
 
   DatabasePassword:
-    AllowedPattern: '[a-zA-Z0-9]+'
+    AllowedPattern: "[a-zA-Z0-9]+"
     ConstraintDescription: must contain only alphanumeric characters.
     Description: The database admin account password.
-    MaxLength: '41'
-    MinLength: '8'
-    NoEcho: 'true'
+    MaxLength: "41"
+    MinLength: "8"
+    NoEcho: "true"
     Type: String
 
   DatabaseUsername:
-    AllowedPattern: '[a-zA-Z0-9]+'
+    AllowedPattern: "[a-zA-Z0-9]+"
     ConstraintDescription: must contain only alphanumeric characters.
     Description: The database admin account user name.
-    MaxLength: '16'
-    MinLength: '1'
+    MaxLength: "16"
+    MinLength: "1"
     Type: String
 
   RedisAUTHtoken:
-    AllowedPattern: '[a-zA-Z0-9]+'
+    AllowedPattern: "[a-zA-Z0-9]+"
     ConstraintDescription: must contain only alphanumeric characters.
     Description: Redis account AUTH token.
-    MaxLength: '41'
-    MinLength: '16'
-    NoEcho: 'true'
+    MaxLength: "41"
+    MinLength: "16"
+    NoEcho: "true"
     Type: String
 
   DatabaseSubnets:
@@ -59,12 +59,12 @@ Parameters:
   AuroraSnapshotArn:
     Description: Leave Blank if N/A. The AWS ARN of the Aurora database backup which you want to start Aurora with. arn:aws:SnapshotID. Go to RDS to copy and paste the ARN
     Type: String
-    Default: ''
+    Default: ""
 
   RedisBackupName:
     Description: Leave Blank if N/A. The name of the backup you'll restore the redis cluster from.Go to elasticache Backups and copy and paste the Backup name.
     Type: String
-    Default: ''
+    Default: ""
 
   RedisType:
     Default: cache.t3.micro
@@ -94,9 +94,10 @@ Parameters:
 Conditions:
   CreateStagingResources: !Equals [!Ref EnvironmentName, Staging]
   CreateProdResources: !Equals [!Ref EnvironmentName, Prod]
-  UseAuroraSnapshot: !Not [!Equals [!Ref AuroraSnapshotArn, '']]
-  UseRedisBackup: !Not [!Equals [!Ref RedisBackupName, '']]
+  UseAuroraSnapshot: !Not [!Equals [!Ref AuroraSnapshotArn, ""]]
+  UseRedisBackup: !Not [!Equals [!Ref RedisBackupName, ""]]
 
+# TODO: Remove kms key section and import the resource instead
 Resources:
   # Data At-rest AWS-managed server-side encryption
   # Warning: If you delete an encryption key used by your database, you can't unencrypt the data without the key
@@ -108,10 +109,10 @@ Resources:
       Description: !Sub KMS Key for our ${AWS::StackName} Aurora, Elasticache and S3
       KeyPolicy:
         Id: !Ref AWS::StackName #You can also used the Environment name instead of the Stackname
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Sid: 'Allow administration of the key'
-            Effect: 'Allow'
+          - Sid: "Allow administration of the key"
+            Effect: "Allow"
             Action:
               - kms:Create*
               - kms:Describe*
@@ -127,18 +128,18 @@ Resources:
               - kms:CancelKeyDeletion
             Principal:
               AWS: !Ref AWS::AccountId
-            Resource: '*'
-          - Sid: 'Allow use of the key'
-            Effect: 'Allow'
+            Resource: "*"
+          - Sid: "Allow use of the key"
+            Effect: "Allow"
             Principal:
               AWS: !Ref AWS::AccountId
             Action:
-              - 'kms:Encrypt'
-              - 'kms:Decrypt'
-              - 'kms:ReEncrypt*'
-              - 'kms:GenerateDataKey*'
-              - 'kms:DescribeKey'
-            Resource: '*'
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
 
   DatabaseSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
@@ -154,7 +155,8 @@ Resources:
       Engine: aurora-mysql
       EngineVersion: 5.7.12
       DBClusterParameterGroupName: default.aurora-mysql5.7
-      DatabaseName: !If [UseAuroraSnapshot, !Ref 'AWS::NoValue', !Ref DatabaseName]
+      DatabaseName:
+        !If [UseAuroraSnapshot, !Ref "AWS::NoValue", !Ref DatabaseName]
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
@@ -162,11 +164,14 @@ Resources:
       StorageEncrypted: true # At rest encryption enabled
       VpcSecurityGroupIds:
         - !Ref DatabaseSecurityGroup
-      BackupRetentionPeriod: !If [CreateStagingResources, !Ref 'AWS::NoValue', 7]
-      PreferredBackupWindow: !If [CreateStagingResources, !Ref 'AWS::NoValue', '05:00-09:00']
+      BackupRetentionPeriod:
+        !If [CreateStagingResources, !Ref "AWS::NoValue", 7]
+      PreferredBackupWindow:
+        !If [CreateStagingResources, !Ref "AWS::NoValue", "05:00-09:00"]
       PreferredMaintenanceWindow:
-        !If [CreateStagingResources, !Ref 'AWS::NoValue', 'sun:22:00-sun:23:30']
-      SnapshotIdentifier: !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref 'AWS::NoValue']
+        !If [CreateStagingResources, !Ref "AWS::NoValue", "sun:22:00-sun:23:30"]
+      SnapshotIdentifier:
+        !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref "AWS::NoValue"]
 
   DatabasePrimaryInstance:
     Type: AWS::RDS::DBInstance
@@ -179,11 +184,12 @@ Resources:
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
 
   RDSDBParameterGroup:
-    Type: 'AWS::RDS::DBParameterGroup'
+    Type: "AWS::RDS::DBParameterGroup"
     Properties:
-      Description: 'CloudFormation  Aurora Parameter Group'
+      Description: "CloudFormation  Aurora Parameter Group"
       Family: aurora-mysql5.7
 
+  # TODO: Remove Replica section and create a new stack using only replica for us-east-1 prod
   # Add more Read capability for production
   DatabaseReplicaInstance:
     Type: AWS::RDS::DBInstance
@@ -228,7 +234,8 @@ Resources:
       # InsufficientDataActions:
       #     - Ref: AlarmTopic
 
-  #   Alarm for Read replicas to monitor CPU usage
+  # TODO: Remove Replica section and create a new stack using only replica for us-east-1 prod
+  #  Alarm for Read replicas to monitor CPU usage
   DatabaseReplicaCPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
@@ -273,7 +280,8 @@ Resources:
       # InsufficientDataActions:
       #     - Ref: AlarmTopic
 
-  #   Alarm for Read Replicas to monitor latency
+  # TODO: Remove Replica section and create a new stack using only replica for us-east-1 prod
+  # Alarm for Read Replicas to monitor latency
   DatabaseReplicaReplicationAlarm:
     Type: AWS::CloudWatch::Alarm
     Condition: CreateProdResources
@@ -294,6 +302,7 @@ Resources:
       #   AlarmActions:
       #       - Ref: AlarmTopic
 
+  # TODO: Remove this section and create a redis cluster only stack
   # Redis cluster(s) configuration
   RedisSubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
@@ -304,8 +313,9 @@ Resources:
         - !Select [0, !Ref DatabaseSubnets] # Avalaibility Zone 1 (subnet 1)
         - !Select [1, !Ref DatabaseSubnets] # Avalaibility Zone 2 (subnet 2)
 
+  # TODO: Remove this section and create a redis cluster only stack
   RedisClusters:
-    Type: 'AWS::ElastiCache::ReplicationGroup'
+    Type: "AWS::ElastiCache::ReplicationGroup"
     DependsOn: RedisSubnetGroup
     Properties:
       TransitEncryptionEnabled: true # In-transit encrytion enabled
@@ -317,7 +327,7 @@ Resources:
       CacheParameterGroupName: default.redis5.0.cluster.on #Cluster mode enabled (Allow multiples shards/clusters)
       CacheSubnetGroupName: !Ref RedisSubnetGroup
       Engine: redis
-      EngineVersion: '5.0.5'
+      EngineVersion: "5.0.5"
       KmsKeyId: !GetAtt KmsKey.Arn # At-rest AWS-managed server-side encryption key
       NumNodeGroups: 1 # Number of shards/clusters
       Port: 6379
@@ -326,16 +336,23 @@ Resources:
       ReplicationGroupId: !Sub ${EnvironmentName}-Redis-Clusters
       SecurityGroupIds:
         - !Ref RedisSecurityGroup
-      SnapshotRetentionLimit: !If [CreateStagingResources, !Ref 'AWS::NoValue', 7] # Number of days to store backup before being deleted
-      SnapshotWindow: !If [CreateStagingResources, !Ref 'AWS::NoValue', '05:00-09:00']
+      SnapshotRetentionLimit: !If [
+          CreateStagingResources,
+          !Ref "AWS::NoValue",
+          7,
+        ] # Number of days to store backup before being deleted
+      SnapshotWindow:
+        !If [CreateStagingResources, !Ref "AWS::NoValue", "05:00-09:00"]
       PreferredMaintenanceWindow:
-        !If [CreateStagingResources, !Ref 'AWS::NoValue', 'sun:22:00-sun:23:30']
-      SnapshotName: !If [UseRedisBackup, !Ref RedisBackupName, !Ref 'AWS::NoValue']
+        !If [CreateStagingResources, !Ref "AWS::NoValue", "sun:22:00-sun:23:30"]
+      SnapshotName:
+        !If [UseRedisBackup, !Ref RedisBackupName, !Ref "AWS::NoValue"]
       #                 If you want to use the alternative configuration of passing parameter instead
       # SnapshotRetentionLimit: !Ref DatabaseBackupRetentionPeriod # Number of days to store backup before being deleted
       # SnapshotWindow: !Ref PreferredBackupWindow
       # PreferredMaintenanceWindow: !Ref PreferredMaintenanceWindow
 
+  # TODO: Remove this section and create an s3 only stack
   # You can encrypt s3 with the KMS key in this stack, but you'll need to enable S3 Versioning first
   # You can store static contents (images, videos) or host pre-rendered or client-side rendered web app
   # Bucket:

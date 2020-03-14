@@ -13,12 +13,12 @@ Parameters:
 
   LinuxECSAmiId:
     Description: Recommended ECS-optimised Amazon Linux 2 ami
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     # obtain list with
     # aws ssm get-parameters-by-path --path /aws/service/ecs/optimized-ami/amazon-linux-2/recommended --recursive
     # This method automatically obtain an AMI based on the region
     # by calling the SSM public parameter to obtain the AMI in that region.
-    Default: '/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id'
+    Default: "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
 
   CertificateArn:
     Description: AWS ARN of the SSL certificate to be used by the ALB
@@ -28,7 +28,7 @@ Parameters:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
-    Default: ''
+    Default: ""
 
   EnvironmentName:
     Description: Environment Type
@@ -86,7 +86,7 @@ Parameters:
 Conditions:
   CreateProdResources: !Equals [!Ref EnvironmentName, Prod]
   CreateStagingResources: !Equals [!Ref EnvironmentName, Staging]
-  useKeyPair: !Not [!Equals [!Ref KeyName, '']]
+  useKeyPair: !Not [!Equals [!Ref KeyName, ""]]
 
 Resources:
   EC2AutoScalingGroup:
@@ -120,6 +120,7 @@ Resources:
           - ScheduledActions
         WaitOnResourceSignals: true
 
+  # TODO: Update Userdata for ecs-optimised instance. Current config is from previous project
   EC2LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
@@ -127,9 +128,9 @@ Resources:
       InstanceType: !Ref InstanceType
       SecurityGroups:
         - !Ref EC2SecurityGroup
-      KeyName: !If [useKeyPair, !Ref KeyName, !Ref 'AWS::NoValue']
+      KeyName: !If [useKeyPair, !Ref KeyName, !Ref "AWS::NoValue"]
       UserData:
-        'Fn::Base64': !Sub |
+        "Fn::Base64": !Sub |
           #!/bin/bash
           yum update -y
           yum install gnupg -yqq
@@ -214,14 +215,14 @@ Resources:
       Port: 80
       Protocol: HTTP
       DefaultActions:
-        - Type: 'redirect'
+        - Type: "redirect"
           RedirectConfig:
-            Protocol: 'HTTPS'
-            Port: '443'
-            Host: '#{host}'
-            Path: '/#{path}'
-            Query: '#{query}'
-            StatusCode: 'HTTP_301'
+            Protocol: "HTTPS"
+            Port: "443"
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: "HTTP_301"
 
   LoadBalancerListenerHTTPS:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -247,7 +248,7 @@ Resources:
       Port: 443
       Protocol: HTTPS
       HealthCheckPath: /
-      HealthCheckPort: '443'
+      HealthCheckPort: "443"
       HealthCheckTimeoutSeconds: 5
       TargetType: instance
       HealthyThresholdCount: 5
