@@ -68,6 +68,9 @@ Resources:
           echo ==== Finished UserData Script ====
 
 Outputs:
+  # You will need to create a vpc,
+  # http in/out security groups and nat gateway,
+  # if you want this template to work
   URL:
     Value:
       Fn::Join:
