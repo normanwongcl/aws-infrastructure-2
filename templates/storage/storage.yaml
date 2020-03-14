@@ -170,8 +170,9 @@ Resources:
         !If [CreateStagingResources, !Ref "AWS::NoValue", "05:00-09:00"]
       PreferredMaintenanceWindow:
         !If [CreateStagingResources, !Ref "AWS::NoValue", "sun:22:00-sun:23:30"]
-      SnapshotIdentifier:
-        !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref "AWS::NoValue"]
+      # TODO: Create a dedicated snapshot template to run only the db snapshot
+      # SnapshotIdentifier:
+      #   !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref "AWS::NoValue"]
 
   DatabasePrimaryInstance:
     Type: AWS::RDS::DBInstance

@@ -11,10 +11,10 @@ Resources:
       Description: !Sub KMS Key for our ${AWS::StackName} Aurora, Elasticache and S3
       KeyPolicy:
         Id: !Ref AWS::StackName #You can also used the Environment name instead of the Stackname
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Sid: 'Allow administration of the key'
-            Effect: 'Allow'
+          - Sid: "Allow administration of the key"
+            Effect: "Allow"
             Action:
               - kms:Create*
               - kms:Describe*
@@ -30,22 +30,23 @@ Resources:
               - kms:CancelKeyDeletion
             Principal:
               AWS: !Ref AWS::AccountId
-            Resource: '*'
-          - Sid: 'Allow use of the key'
-            Effect: 'Allow'
+            Resource: "*"
+          - Sid: "Allow use of the key"
+            Effect: "Allow"
             Principal:
               AWS: !Ref AWS::AccountId
             Action:
-              - 'kms:Encrypt'
-              - 'kms:Decrypt'
-              - 'kms:ReEncrypt*'
-              - 'kms:GenerateDataKey*'
-              - 'kms:DescribeKey'
-            Resource: '*'
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: "*"
 
 Outputs:
   VPC:
     Description: A reference to the KMS key
     Value: !Ref KmsKey
     Export:
-      Name: !Sub '${AWS::StackName}-KMS-ID'
+      Name: !Sub "${AWS::StackName}-KMS-ID"
+    # Name: !Join ["", ["KMS::", !Ref AWS::StackName , "::SecurityGroup-Redis"]]
