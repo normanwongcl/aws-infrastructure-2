@@ -4,6 +4,51 @@ Description: >
   route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ),
   and default routes for them in the private subnets.
 
+Metadata:
+  License: Apache 2.0
+  Author: Norman Wong Chiew Look
+
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: What is your environment?
+        Parameters:
+          - EnvironmentName
+      - Label:
+          default: What is your VPC IPv4 CIDR Block?
+        Parameters:
+          - VpcCIDR
+      - Label:
+          default: What is your VPC IPv4 Public Subnet CIDR Block?
+        Parameters:
+          - PublicSubnet1CIDR
+          - PublicSubnet2CIDR
+          - PublicSubnet3CIDR
+      - Label:
+          default: What is your VPC IPv4 Private Subnet CIDR Block?
+        Parameters:
+          - PrivateSubnet1CIDR
+          - PrivateSubnet2CIDR
+          - PrivateSubnet3CIDR
+
+    ParameterLabels:
+      EnvironmentName:
+        default: Environment name
+      VpcCIDR:
+        default: VPC IPv4 CIDR Block
+      PublicSubnet1CIDR:
+        default: VPC IPv4 Public Subnet 1 CIDR Block
+      PublicSubnet2CIDR:
+        default: VPC IPv4 Public Subnet 2 CIDR Block
+      PublicSubnet3CIDR:
+        default: VPC IPv4 Public Subnet 3 CIDR Block
+      PrivateSubnet1CIDR:
+        default: VPC IPv4 Private Subnet 1 CIDR Block
+      PrivateSubnet2CIDR:
+        default: VPC IPv4 Private Subnet 2 CIDR Block
+      PrivateSubnet3CIDR:
+        default: VPC IPv4 Private Subnet 3 CIDR Block
+
 Parameters:
   EnvironmentName:
     Description: Environment Type
