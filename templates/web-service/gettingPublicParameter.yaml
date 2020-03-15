@@ -36,7 +36,7 @@ Resources:
                 Action:
                   - "s3:*"
                 Resource: "*"
-      RoleName: !Join ["", [!Ref "AWS::StackName", "ServerRole"]]
+      RoleName: "ServerRole"
 
   # Assigned role to ec2 instance
   DeployRoleProfile:
