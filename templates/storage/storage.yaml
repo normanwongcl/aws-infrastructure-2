@@ -14,23 +14,7 @@ Parameters:
     Description: The instance type to use for the database.
     Type: String
 
-  DatabasePassword:
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The database admin account password.
-    MaxLength: "41"
-    MinLength: "8"
-    NoEcho: "true"
-    Type: String
-
-  DatabaseUsername:
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The database admin account user name.
-    MaxLength: "16"
-    MinLength: "1"
-    Type: String
-
+  # TODO: Delete this parameter and use secret manager to pass the redis auth token
   RedisAUTHtoken:
     AllowedPattern: "[a-zA-Z0-9]+"
     ConstraintDescription: must contain only alphanumeric characters.
@@ -180,8 +164,24 @@ Resources:
           !Ref "AWS::NoValue",
           !Join ["", [!Ref "AWS::StackName", "-database-cluster"]],
         ]
-      MasterUsername: !Ref DatabaseUsername
-      MasterUserPassword: !Ref DatabasePassword
+      MasterUsername:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            Ref: "AWS::StackName",
+            "-RDSMasterSecret:SecretString:username}}",
+          ],
+        ]
+      MasterUserPassword:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            Ref: "AWS::StackName",
+            "-RDSMasterSecret:SecretString:password}}",
+          ],
+        ]
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
       KmsKeyId: !GetAtt KmsKey.Arn # At rest encryption key
       StorageEncrypted: true # At rest encryption enabled
