@@ -52,10 +52,6 @@ Parameters:
     Type: AWS::EC2::SecurityGroup::Id
     Description: Security groups to apply to the Redis cluster.
 
-  DatabaseName:
-    Type: String
-    Description: Database name
-
   AuroraSnapshotArn:
     Description: Leave Blank if N/A. The AWS ARN of the Aurora database backup which you want to start Aurora with. arn:aws:SnapshotID. Go to RDS to copy and paste the ARN
     Type: String
@@ -146,6 +142,29 @@ Resources:
     Properties:
       DBSubnetGroupDescription: CloudFormation managed DB subnet group.
       SubnetIds: !Ref DatabaseSubnets
+      Tags:
+        - Key: "Name"
+          Value: !Join ["", [!Ref "AWS::StackName", "::DatabaseSubnetGroup"]]
+
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: This is the database password for the Aurora Master Instance
+      GenerateSecretString:
+        ExcludeCharacters: '"@/\'
+        GenerateStringKey: password
+        PasswordLength: 40
+        SecretStringTemplate: '{"username":"admin"}'
+      Name: !Join ["", [!Ref "AWS::StackName", "-RDSMasterSecret"]]
+
+  DatabaseSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: DatabaseSecret
+      TargetId:
+        Ref: DatabaseCluster
+      TargetType: AWS::RDS::DBCluster
 
   # Aurora Database Cluster(s) confguration
   DatabaseCluster:
@@ -156,7 +175,11 @@ Resources:
       EngineVersion: 5.7.12
       DBClusterParameterGroupName: default.aurora-mysql5.7
       DatabaseName:
-        !If [UseAuroraSnapshot, !Ref "AWS::NoValue", !Ref DatabaseName]
+        !If [
+          UseAuroraSnapshot,
+          !Ref "AWS::NoValue",
+          !Join ["", [!Ref "AWS::StackName", "-database-cluster"]],
+        ]
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
