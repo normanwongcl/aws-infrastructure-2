@@ -89,6 +89,39 @@ Conditions:
   useKeyPair: !Not [!Equals [!Ref KeyName, ""]]
 
 Resources:
+  # Create role for ec2 to allow all actions on s3.
+  WebServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        - PolicyName: "ReadAndWriteS3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:*"
+                Resource: "*"
+      RoleName: !Join ["", [!Ref EnvironmentName, "ServerRole"]]
+
+  # Assigned role to ec2 instance
+  DeployInstanceRoleProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: WebServerRole
+
   EC2AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
@@ -120,12 +153,14 @@ Resources:
           - ScheduledActions
         WaitOnResourceSignals: true
 
-  # TODO: Update Userdata for ecs-optimised instance. Current config is from previous project
+  # TODO: - Update Userdata for ecs-optimised instance. Current config is from previous project
+  #       - Create a new stack dedicated to the launch configuration and import the reference
   EC2LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: !Ref LinuxECSAmiId
       InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref DeployInstanceRoleProfile
       SecurityGroups:
         - !Ref EC2SecurityGroup
       KeyName: !If [useKeyPair, !Ref KeyName, !Ref "AWS::NoValue"]

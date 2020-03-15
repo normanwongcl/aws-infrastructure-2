@@ -1,12 +1,12 @@
 ---
 project:
   owner: nich19032@gmail.com
-  name: aws-infrastructure-2
+  name: aws-infra-2
   regions:
     - ap-southeast-1
 
 tests:
-  test-scenario-1:
+  test-1:
     parameters:
       LatestLinuxAmiId: /aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id
     template: ./templates/web-service/gettingPublicParameter.yaml
@@ -14,7 +14,7 @@ tests:
     regions:
       - ap-southeast-1
 
-  test-scenario-2:
+  test-2:
     parameters:
       EnvironmentName: Staging
       VpcCIDR: 10.2.0.0/16

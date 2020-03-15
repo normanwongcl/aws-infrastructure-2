@@ -14,23 +14,7 @@ Parameters:
     Description: The instance type to use for the database.
     Type: String
 
-  DatabasePassword:
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The database admin account password.
-    MaxLength: "41"
-    MinLength: "8"
-    NoEcho: "true"
-    Type: String
-
-  DatabaseUsername:
-    AllowedPattern: "[a-zA-Z0-9]+"
-    ConstraintDescription: must contain only alphanumeric characters.
-    Description: The database admin account user name.
-    MaxLength: "16"
-    MinLength: "1"
-    Type: String
-
+  # TODO: Delete this parameter and use secret manager to pass the redis auth token
   RedisAUTHtoken:
     AllowedPattern: "[a-zA-Z0-9]+"
     ConstraintDescription: must contain only alphanumeric characters.
@@ -51,10 +35,6 @@ Parameters:
   RedisSecurityGroup:
     Type: AWS::EC2::SecurityGroup::Id
     Description: Security groups to apply to the Redis cluster.
-
-  DatabaseName:
-    Type: String
-    Description: Database name
 
   AuroraSnapshotArn:
     Description: Leave Blank if N/A. The AWS ARN of the Aurora database backup which you want to start Aurora with. arn:aws:SnapshotID. Go to RDS to copy and paste the ARN
@@ -146,19 +126,63 @@ Resources:
     Properties:
       DBSubnetGroupDescription: CloudFormation managed DB subnet group.
       SubnetIds: !Ref DatabaseSubnets
+      Tags:
+        - Key: "Name"
+          Value: !Join ["", [!Ref "AWS::StackName", "::DatabaseSubnetGroup"]]
+
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: This is the database password for the Aurora Master Instance
+      GenerateSecretString:
+        ExcludeCharacters: '"@/\'
+        GenerateStringKey: password
+        PasswordLength: 40
+        SecretStringTemplate: '{"username":"admin"}'
+      Name: !Join ["", [!Ref "AWS::StackName", "-RDSMasterSecret"]]
+
+  DatabaseSecretAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId:
+        Ref: DatabaseSecret
+      TargetId:
+        Ref: DatabaseCluster
+      TargetType: AWS::RDS::DBCluster
 
   # Aurora Database Cluster(s) confguration
   DatabaseCluster:
     Type: AWS::RDS::DBCluster
-    DependsOn: DatabaseSubnetGroup
+    DependsOn:
+      - DatabaseSecret
     Properties:
       Engine: aurora-mysql
       EngineVersion: 5.7.12
       DBClusterParameterGroupName: default.aurora-mysql5.7
       DatabaseName:
-        !If [UseAuroraSnapshot, !Ref "AWS::NoValue", !Ref DatabaseName]
-      MasterUsername: !Ref DatabaseUsername
-      MasterUserPassword: !Ref DatabasePassword
+        !If [
+          UseAuroraSnapshot,
+          !Ref "AWS::NoValue",
+          !Join ["", [!Ref "AWS::StackName", "-database-cluster"]],
+        ]
+      MasterUsername:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            Ref: "AWS::StackName",
+            "-RDSMasterSecret:SecretString:username}}",
+          ],
+        ]
+      MasterUserPassword:
+        !Join [
+          "",
+          [
+            "{{resolve:secretsmanager:",
+            Ref: "AWS::StackName",
+            "-RDSMasterSecret:SecretString:password}}",
+          ],
+        ]
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
       KmsKeyId: !GetAtt KmsKey.Arn # At rest encryption key
       StorageEncrypted: true # At rest encryption enabled
@@ -170,8 +194,9 @@ Resources:
         !If [CreateStagingResources, !Ref "AWS::NoValue", "05:00-09:00"]
       PreferredMaintenanceWindow:
         !If [CreateStagingResources, !Ref "AWS::NoValue", "sun:22:00-sun:23:30"]
-      SnapshotIdentifier:
-        !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref "AWS::NoValue"]
+      # TODO: Create a dedicated snapshot template to run only the db snapshot
+      # SnapshotIdentifier:
+      #   !If [UseAuroraSnapshot, !Ref AuroraSnapshotArn, !Ref "AWS::NoValue"]
 
   DatabasePrimaryInstance:
     Type: AWS::RDS::DBInstance

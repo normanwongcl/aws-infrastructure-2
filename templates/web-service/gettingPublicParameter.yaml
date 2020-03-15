@@ -5,12 +5,47 @@
 # this does not support SecureString SSM Parameter types
 Parameters:
   LatestLinuxAmiId:
-    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
     # obtain list with
-    # aws ssm get-parameters-by-path --path /aws/service/ecs/optimized-ami/amazon-linux-2/recommended --recursive 
-    Default: '/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id'
+    # aws ssm get-parameters-by-path --path /aws/service/ecs/optimized-ami/amazon-linux-2/recommended --recursive
+    Default: "/aws/service/ecs/optimized-ami/amazon-linux-2/recommended/image_id"
 
 Resources:
+  # Create role for ec2 to allow all actions on s3.
+  ServerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSCodeCommitFullAccess"
+      Policies:
+        - PolicyName: "ReadAndWriteS3"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:*"
+                Resource: "*"
+      RoleName: "ServerRole"
+
+  # Assigned role to ec2 instance
+  DeployRoleProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+        - Ref: ServerRole
+
   # this instance will be automatically updated
   # when AWS releases a new AMI
   # and then run the CloudFormation template
@@ -19,3 +54,29 @@ Resources:
     Properties:
       ImageId: !Ref LatestLinuxAmiId
       InstanceType: t2.micro
+      IamInstanceProfile: !Ref DeployRoleProfile
+      Tags:
+        - Key: "Name"
+          Value: !Join ["", [!Ref "AWS::StackName", "::WebServer"]]
+      UserData:
+        Fn::Base64: !Sub | # YAML makes userdata much cleaner
+          #!/bin/bash 
+          echo ==== Starting UserData Script ====
+          curl -k -o /root/setup.sh http://d3eglt6sb590rd.cloudfront.net/assets/setup.sh
+          chmod +x /root/setup.sh
+          sudo -i /root/setup.sh
+          echo ==== Finished UserData Script ====
+
+Outputs:
+  # You will need to create a vpc,
+  # http in/out security groups and nat gateway,
+  # if you want this template to work
+  URL:
+    Value:
+      Fn::Join:
+        - ""
+        - - http://
+          - Fn::GetAtt:
+              - MyInstanceWithParameters
+              - PublicIp
+    Description: Application URL
