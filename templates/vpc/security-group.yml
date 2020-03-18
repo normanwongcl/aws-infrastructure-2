@@ -23,7 +23,7 @@ Resources:
   # Web Server Security group
   # By default we're just allowing access from the load balancer.  If you want to SSH
   # into the hosts, or expose non-load balanced services you can open their ports here.
-  EC2SecurityGroup:
+  WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId:
@@ -47,6 +47,31 @@ Resources:
           Value: !Ref AWS::AccountId
         - Key: ENV
           Value: !Ref EnvironmentName
+
+  ## Uncomment this block if you want to test out the network using ping
+  # DefaultICMPSG:
+  #   Type: "AWS::EC2::SecurityGroup"
+  #   Properties:
+  #     GroupName: "DefaultICMP-sg"
+  #     GroupDescription: "ICMP from anywhere"
+  #     VpcId:
+  #       Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+  #     SecurityGroupIngress:
+  #       - IpProtocol: "icmp"
+  #         Description: "ICMP In (v4)"
+  #         FromPort: -1
+  #         ToPort: -1
+  #         CidrIp: 0.0.0.0/0
+  #       - IpProtocol: "icmpv6"
+  #         Description: "ICMP In (v6)"
+  #         CidrIpv6: "::/0"
+  #     Tags:
+  #       - Key: "Name"
+  #         Value: !Sub ${EnvironmentName}-DefaultICMP-sg
+  #       - Key: Account
+  #         Value: !Ref AWS::AccountId
+  #       - Key: ENV
+  #         Value: !Ref EnvironmentName
 
   # Application Load Balancer Security group
   # This security group defines who/where is allowed to access the Application Load Balancer.
@@ -102,7 +127,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 3306
           ToPort: 3306
-          SourceSecurityGroupId: !Ref EC2SecurityGroup
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-AuroraRDS
@@ -124,7 +149,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 6379
           ToPort: 6379
-          SourceSecurityGroupId: !Ref EC2SecurityGroup
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
       Tags:
         - Key: Name
           Value: !Sub ${EnvironmentName}-Redis-elasticache
@@ -136,7 +161,7 @@ Resources:
 Outputs:
   EC2SecurityGroup:
     Description: A reference to the security group for EC2 hosts
-    Value: !Ref EC2SecurityGroup
+    Value: !Ref WebServerSecurityGroup
     Export:
       Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-EC2"]]
 
