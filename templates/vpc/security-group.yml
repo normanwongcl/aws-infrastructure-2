@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  This template deploys all the security groups for the vpc.
+
+Metadata:
+  License: Apache 2.0
+  Author: Norman Wong Chiew Look
+
+Parameters:
+  EnvironmentName:
+    Description: Environment Type
+    Type: String
+    Default: Staging
+    AllowedValues:
+      - Staging
+      - Prod-ap-southeast-2
+      - Prod-us-east-1
+
+Resources:
+  ##################################
+  # Create Security Groups         #
+  ##################################
+  # Web Server Security group
+  # By default we're just allowing access from the load balancer.  If you want to SSH
+  # into the hosts, or expose non-load balanced services you can open their ports here.
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+      GroupDescription: Web server security group
+      GroupName: "WebServer-sg"
+      SecurityGroupIngress:
+        # Only allow inbound access to ECS from the ELB
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-Web-Servers
+        - Key: Account
+          Value: !Ref AWS::AccountId
+        - Key: ENV
+          Value: !Ref EnvironmentName
+
+  ## Uncomment this block if you want to test out the network using ping
+  # DefaultICMPSG:
+  #   Type: "AWS::EC2::SecurityGroup"
+  #   Properties:
+  #     GroupName: "DefaultICMP-sg"
+  #     GroupDescription: "ICMP from anywhere"
+  #     VpcId:
+  #       Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+  #     SecurityGroupIngress:
+  #       - IpProtocol: "icmp"
+  #         Description: "ICMP In (v4)"
+  #         FromPort: -1
+  #         ToPort: -1
+  #         CidrIp: 0.0.0.0/0
+  #       - IpProtocol: "icmpv6"
+  #         Description: "ICMP In (v6)"
+  #         CidrIpv6: "::/0"
+  #     Tags:
+  #       - Key: "Name"
+  #         Value: !Sub ${EnvironmentName}-DefaultICMP-sg
+  #       - Key: Account
+  #         Value: !Ref AWS::AccountId
+  #       - Key: ENV
+  #         Value: !Ref EnvironmentName
+
+  # Application Load Balancer Security group
+  # This security group defines who/where is allowed to access the Application Load Balancer.
+  # By default, we've opened this up to the public internet (0.0.0.0/0) but can you restrict
+  # it further if you want.
+  LoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+      GroupDescription: Access to the load balancer that sits in front of EC2
+      GroupName: "ALB-sg"
+      SecurityGroupIngress:
+        # Allow access from anywhere to our EC2 services
+        - Description: Enable HTTP access via port 80 IPv4
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - Description: Enable HTTP access via port 80 IPv6
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIpv6: ::/0
+        - Description: Enable HTTPS access via port 443 IPv4
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - Description: Enable HTTPS access via port 443 IPv6
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIpv6: ::/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-ApplicationLoadBalancers
+        - Key: Account
+          Value: !Ref AWS::AccountId
+        - Key: ENV
+          Value: !Ref EnvironmentName
+
+  # Aurora/MySQL database security group
+  # This security group defines who/where is allowed to access the database.
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Open database for access
+      GroupName: "MySQLDB-sg"
+      VpcId:
+        Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-AuroraRDS
+        - Key: Account
+          Value: !Ref AWS::AccountId
+        - Key: ENV
+          Value: !Ref EnvironmentName
+
+  # Redis security group
+  # This security group defines who/where is allowed to access the redis cache.
+  RedisSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Open Redis for access
+      GroupName: "RedisElasticache-sg"
+      VpcId:
+        Fn::ImportValue: !Sub VPC::${EnvironmentName}::VPC-ID
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-Redis-elasticache
+        - Key: Account
+          Value: !Ref AWS::AccountId
+        - Key: ENV
+          Value: !Ref EnvironmentName
+
+Outputs:
+  EC2SecurityGroup:
+    Description: A reference to the security group for EC2 hosts
+    Value: !Ref WebServerSecurityGroup
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-EC2"]]
+
+  LoadBalancerSecurityGroup:
+    Description: A reference to the security group for load balancers
+    Value: !Ref LoadBalancerSecurityGroup
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-ALB"]]
+
+  DBSecurityGroup:
+    Description: A reference to the security group for the database
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-DB"]]
+
+  RedisSecurityGroup:
+    Description: A reference to the security group for the redis cache
+    Value: !Ref RedisSecurityGroup
+    Export:
+      Name: !Join ["", ["VPC::", !Ref EnvironmentName, "::SecurityGroup-Redis"]]
