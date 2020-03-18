@@ -115,6 +115,7 @@ Coupled with a custom parameters JSON file can give you a one command solution t
                 <li>Load Balancer Security Group</li>
                 <li>MySQL RDS Security Group</li>
                 <li>Redis Elasticache Security Group</li>
+                <li>ICMPv4 and ICMPv6 Security Group (optional)</li>
             </ol>
         </td>
         <td  nowrap width="200" valign="top">
