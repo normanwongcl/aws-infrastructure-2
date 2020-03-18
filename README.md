@@ -17,6 +17,7 @@ has been deployed in AWS and automatically perform **functional testing and lint
 
 - [Root](#root)
 - [VPC](#vpc)
+- [Security Groups](#sg)
 - [Storage](#storage)
 - [WebServer](#webserver)
 
@@ -63,20 +64,23 @@ Coupled with a custom parameters JSON file can give you a one command solution t
 
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="https://github.com/klezca/aws-infrastructure/blob/master/infrastructure/vpc.yaml">VPC</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="https://github.com/klezca/aws-infrastructure-2/blob/master/templates/vpc/vpc.yaml">VPC</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
-            <p>Select the foundational pieces for building out a VPC network from the ground up.</p>
+            <p>Select the foundational pieces for building out a dualstack IPv4/IPv6 VPC network from the ground up.</p>
             <h6>Create Details</h6>
             <ol>
                 <li>VPC</li>
+                <li>IPv6 Cidr Block</li>
                 <li>Internet Gateway</li>
+                <li>Egress Internet Gateway</li>
                 <li>NAT Gateway</li>
                 <li>3 Public Subnets</li>
                 <li>3 Private Subnets</li>
                 <li>Public/Private Route Table</li>
                 <li>Security Groups</li>
+                <li>IPv6 workaround IAM role and Lambda with python runtime</li> 
             </ol>
         </td>
         <td  nowrap width="200" valign="top">
@@ -86,7 +90,41 @@ Coupled with a custom parameters JSON file can give you a one command solution t
                 </tr>
                 <tr>
                     <td>
-                        <a href="images/vpc.jpg" target="_blank"><img src="images/vpc.jpg" width:100% alt="View Diagram"></a>
+                        <a href="images/vpc/vpc.png" target="_blank"><img src="images/vpc/vpc.png" width:100% alt="View Diagram"></a>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+### Security Groups
+
+[Back to Top](#sg)
+
+<table width="100%">
+    <tr>
+        <th align="left" colspan="2"><h4><a href="https://github.com/klezca/aws-infrastructure-2/blob/master/templates/vpc/security-group.yaml">VPC</a></h4></th>
+    </tr>
+    <tr>
+        <td width="100%" valign="top">
+            <p>Select the foundational pieces for building out the necessary security groups.</p>
+            <h6>Create Details</h6>
+            <ol>
+                <li>Web Server Security Group</li>
+                <li>Load Balancer Security Group</li>
+                <li>MySQL RDS Security Group</li>
+                <li>Redis Elasticache Security Group</li>
+            </ol>
+        </td>
+        <td  nowrap width="200" valign="top">
+            <table>
+                <tr>
+                    <th align="left">View Diagram</th>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="images/vpc/security-groups.png" target="_blank"><img src="images/vpc/security-groups.png" width:100% alt="View Diagram"></a>
                     </td>
                 </tr>
             </table>
