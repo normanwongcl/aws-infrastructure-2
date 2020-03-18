@@ -17,7 +17,7 @@ has been deployed in AWS and automatically perform **functional testing and lint
 
 - [Root](#root)
 - [VPC](#vpc)
-- [Security Groups](#sg)
+- [Security Groups](#security%20groups)
 - [Storage](#storage)
 - [WebServer](#webserver)
 
@@ -100,11 +100,11 @@ Coupled with a custom parameters JSON file can give you a one command solution t
 
 ### Security Groups
 
-[Back to Top](#sg)
+[Back to Top](#overview)
 
 <table width="100%">
     <tr>
-        <th align="left" colspan="2"><h4><a href="https://github.com/klezca/aws-infrastructure-2/blob/master/templates/vpc/security-group.yaml">VPC</a></h4></th>
+        <th align="left" colspan="2"><h4><a href="https://github.com/klezca/aws-infrastructure-2/blob/master/templates/vpc/security-group.yaml">Security Groups</a></h4></th>
     </tr>
     <tr>
         <td width="100%" valign="top">
