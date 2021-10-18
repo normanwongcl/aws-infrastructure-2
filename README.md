@@ -7,6 +7,10 @@ This is a modified project of my aws-infrastructure repository: https://github.c
 A simple CI workflow using CodePipeline and Codebuild: https://aws.amazon.com/quickstart/architecture/cicd-taskcat/
 has been deployed in AWS and automatically perform **functional testing and linting checks** on the cloudformation templates using the **TaskCat** configuration described in the **.taskcat.yml** file. The CI workflow will automatically merge the **test branch into master** if all the tests passes.
 
+## Goals
+- The aim of this project was for me to learn how to build out a complicated infrastructre project from scratch during my free time.
+- To use this project as future reference material for myself.
+
 ## Overview
 
 ![infrastructure-overview](images/overview.png)
