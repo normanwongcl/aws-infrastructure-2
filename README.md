@@ -1,4 +1,4 @@
-# Deploying a multi-environment and multi-region 3-tier dockerised application with AWS Cloudformation (Work In Progress)
+# Deploying a multi-environment and multi-region 3-tier dockerised application with AWS Cloudformation (Discontinued)
 
 This repository provides a set of YAML templates and linux shell scripts for deploying a 3-tier dockerised application to [Amazon EC2 instances](https://aws.amazon.com/ec2/) using [ECS](https://aws.amazon.com/ecs/).
 
